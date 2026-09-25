@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Live on-chain tracker for XO Market's $1M USDC liquidity rewards program." />
+  <title>XO Liquidity Rewards Tracker</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#080b10; --panel:#10151d; --panel2:#141b25; --text:#f5f7fb; --muted:#8d98a8;
+      --line:#222b38; --accent:#d7ff52; --good:#92e6a7; --danger:#ff8e8e;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    main{max-width:1050px;margin:0 auto;padding:38px 20px 70px}
+    .top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:28px}
+    h1{font-size:clamp(28px,5vw,46px);line-height:1.05;margin:0 0 10px;letter-spacing:-.04em}
+    .sub{color:var(--muted);max-width:680px}
+    button{background:var(--accent);border:0;border-radius:10px;padding:11px 15px;font-weight:800;color:#111;cursor:pointer;min-width:112px}
+    button:disabled{opacity:.55;cursor:wait}
+    .status{color:var(--muted);font-size:13px;margin-top:8px;text-align:right}
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}
+    .label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+    .value{font-size:clamp(22px,3vw,31px);font-weight:800;letter-spacing:-.03em;overflow-wrap:anywhere}
+    .value small{font-size:.45em;color:var(--muted);font-weight:600}
+    .progress{height:12px;background:#1a222d;border-radius:999px;overflow:hidden;border:1px solid var(--line);margin:8px 0 24px}
+    .progress>div{height:100%;width:0;background:var(--accent);transition:width .35s ease}
+    .section{margin-top:26px}
+    .section-head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:10px}
+    h2{font-size:18px;margin:0}
+    .tiny{font-size:12px;color:var(--muted)}
+    .bars{display:flex;align-items:end;gap:8px;height:190px;padding:16px 10px 0;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow-x:auto}
+    .bar-wrap{height:100%;min-width:72px;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:7px}
+    .bar-val{font-size:11px;color:var(--muted);white-space:nowrap}
+    .bar{width:40px;min-height:2px;background:var(--accent);border-radius:7px 7px 2px 2px}
+    .bar-date{font-size:11px;color:var(--muted);white-space:nowrap;padding-bottom:8px}
+    .table-wrap{border:1px solid var(--line);border-radius:16px;overflow:auto;background:var(--panel)}
+    table{border-collapse:collapse;width:100%;min-width:610px}
+    th,td{text-align:left;padding:13px 15px;border-bottom:1px solid var(--line)}
+    th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;background:var(--panel2)}
+    tr:last-child td{border-bottom:0}
+    td.num{text-align:right;font-variant-numeric:tabular-nums}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+    .foot{margin-top:22px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+    .error{display:none;background:#2a1518;border:1px solid #5b272d;color:#ffb7bd;padding:14px;border-radius:12px;margin-bottom:18px}
+    @media(max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.top{flex-direction:column}.status{text-align:left}}
+    @media(max-width:440px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <h1>XO Liquidity Rewards</h1>
+      <div class="sub">Live on-chain tracking of USDC.e sent by the confirmed XO liquidity-reward distributor since the $1M program launch on Sep 21, 2026.</div>
+    </div>
+    <div>
+      <button id="refresh">Refresh</button>
+      <div class="status" id="status">Loading chain data…</div>
+    </div>
+  </div>
+
+  <div class="error" id="error"></div>
+
+  <div class="grid">
+    <div class="card"><div class="label">Distributed</div><div class="value" id="distributed">—</div></div>
+    <div class="card"><div class="label">Remaining</div><div class="value" id="remaining">—</div></div>
+    <div class="card"><div class="label">Budget used</div><div class="value" id="percent">—</div></div>
+    <div class="card"><div class="label">Recipients</div><div class="value" id="recipients">—</div></div>
+  </div>
+
+  <div class="progress" aria-label="Campaign budget progress"><div id="progress"></div></div>
+
+  <section class="section">
+    <div class="section-head"><h2>Daily distributions</h2><div class="tiny" id="txCount"></div></div>
+    <div class="bars" id="bars"><div class="tiny">Loading…</div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Daily ledger</h2><div class="tiny">UTC</div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th class="num">USDC.e</th><th class="num">Transfers</th><th class="num">Recipients</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="foot">
+    <div>Distributor: <span class="mono">0x1f6edb…6e3e4f</span></div>
+    <div>Source: XO Market Blockscout · USDC.e Transfer events · refreshes every 5 minutes</div>
+  </div>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const money = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:6});
+  const intFmt = new Intl.NumberFormat('en-US');
+  let timer;
+
+  function shortDate(s){
+    const d = new Date(s + 'T00:00:00Z');
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
+  }
+
+  async function load(manual=false){
+    $('refresh').disabled = true;
+    $('status').textContent = manual ? 'Refreshing…' : 'Loading chain data…';
+    $('error').style.display = 'none';
+    try{
+      const r = await fetch('/api/rewards' + (manual ? '?t=' + Date.now() : ''));
+      const d = await r.json();
+      if(!r.ok || !d.ok) throw new Error(d.error || 'Unable to load rewards');
+
+      const distributed = Number(d.totalDistributed);
+      const remaining = Number(d.remaining);
+      $('distributed').innerHTML = '$' + money.format(distributed) + ' <small>USDC</small>';
+      $('remaining').innerHTML = '$' + money.format(remaining);
+      $('percent').textContent = Number(d.percentDistributed).toFixed(4) + '%';
+      $('recipients').textContent = intFmt.format(d.uniqueRecipients);
+      $('txCount').textContent = intFmt.format(d.transferCount) + ' on-chain transfers';
+      $('progress').style.width = Math.max(0, Math.min(100, Number(d.percentDistributed))) + '%';
+
+      const max = Math.max(1, ...d.daily.map(x => Number(x.amount)));
+      $('bars').innerHTML = d.daily.length ? d.daily.map(x => {
+        const val = Number(x.amount);
+        const h = Math.max(2, Math.round((val/max)*125));
+        return `<div class="bar-wrap" title="${x.date}: ${money.format(val)} USDC"><div class="bar-val">$${money.format(val)}</div><div class="bar" style="height:${h}px"></div><div class="bar-date">${shortDate(x.date)}</div></div>`;
+      }).join('') : '<div class="tiny">No distributions found yet.</div>';
+
+      $('tbody').innerHTML = d.daily.length ? [...d.daily].reverse().map(x => `<tr><td>${x.date}</td><td class="num">${money.format(Number(x.amount))}</td><td class="num">${intFmt.format(x.transfers)}</td><td class="num">${intFmt.format(x.recipients)}</td></tr>`).join('') : '<tr><td colspan="4">No distributions found.</td></tr>';
+
+      const updated = new Date(d.updatedAt);
+      $('status').textContent = 'Updated ' + updated.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + ' · block ' + intFmt.format(d.latestBlock);
+    }catch(e){
+      $('error').textContent = e.message || String(e);
+      $('error').style.display = 'block';
+      $('status').textContent = 'Update failed';
+    }finally{
+      $('refresh').disabled = false;
+    }
+  }
+
+  $('refresh').addEventListener('click',()=>load(true));
+  load(false);
+  timer = setInterval(()=>load(false), 300000);
+</script>
+</body>
+</html>
