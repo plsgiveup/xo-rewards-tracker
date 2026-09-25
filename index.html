@@ -37,11 +37,18 @@
     .bar{width:40px;min-height:2px;background:var(--accent);border-radius:7px 7px 2px 2px}
     .bar-date{font-size:11px;color:var(--muted);white-space:nowrap;padding-bottom:8px}
     .table-wrap{border:1px solid var(--line);border-radius:16px;overflow:auto;background:var(--panel)}
-    table{border-collapse:collapse;width:100%;min-width:610px}
-    th,td{text-align:left;padding:13px 15px;border-bottom:1px solid var(--line)}
-    th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;background:var(--panel2)}
-    tr:last-child td{border-bottom:0}
-    td.num{text-align:right;font-variant-numeric:tabular-nums}
+    .ledger-table{border-collapse:collapse;width:100%;min-width:720px;table-layout:fixed}
+    .ledger-table col.col-date{width:26%}
+    .ledger-table col.col-amount{width:28%}
+    .ledger-table col.col-transfers{width:23%}
+    .ledger-table col.col-recipients{width:23%}
+    .ledger-table th,.ledger-table td{padding:15px 16px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:middle}
+    .ledger-table th:last-child,.ledger-table td:last-child{border-right:0}
+    .ledger-table thead th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;background:var(--panel2)}
+    .ledger-table tbody td{font-size:15px;background:var(--panel)}
+    .ledger-table tbody tr:last-child td{border-bottom:0}
+    .ledger-table th:first-child,.ledger-table td:first-child{text-align:left}
+    .ledger-table th.num,.ledger-table td.num{text-align:right;font-variant-numeric:tabular-nums}
     .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
     .foot{margin-top:22px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
     .error{display:none;background:#2a1518;border:1px solid #5b272d;color:#ffb7bd;padding:14px;border-radius:12px;margin-bottom:18px}
@@ -79,10 +86,24 @@
   </section>
 
   <section class="section">
-    <div class="section-head"><h2>Daily ledger</h2><div class="tiny">Recent payouts: ~01:08–01:09 UTC</div></div>
+    <div class="section-head"><h2>Daily ledger</h2></div>
+    <div class="tiny" style="margin:0 0 10px 2px">Recent payout window observed: ~01:08–01:09 UTC</div>
     <div class="table-wrap">
-      <table>
-        <thead><tr><th>Date (UTC)</th><th class="num">USDC.e</th><th class="num">Transfers</th><th class="num">Recipients</th></tr></thead>
+      <table class="ledger-table">
+        <colgroup>
+          <col class="col-date">
+          <col class="col-amount">
+          <col class="col-transfers">
+          <col class="col-recipients">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Date (UTC)</th>
+            <th class="num">USDC.e</th>
+            <th class="num">Transfers</th>
+            <th class="num">Recipients</th>
+          </tr>
+        </thead>
         <tbody id="tbody"><tr><td colspan="4">Loading…</td></tr></tbody>
       </table>
     </div>
