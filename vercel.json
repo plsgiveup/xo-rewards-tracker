@@ -1,0 +1,10 @@
+{
+  "headers": [
+    {
+      "source": "/api/rewards",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ]
+}
