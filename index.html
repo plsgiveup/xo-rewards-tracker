@@ -28,7 +28,7 @@
     .progress{height:12px;background:#1a222d;border-radius:999px;overflow:hidden;border:1px solid var(--line);margin:8px 0 24px}
     .progress>div{height:100%;width:0;background:var(--accent);transition:width .35s ease}
     .section{margin-top:26px}
-    .section-head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:10px}
+    .section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
     h2{font-size:18px;margin:0}
     .tiny{font-size:12px;color:var(--muted)}
     .bars{display:flex;align-items:end;gap:8px;height:190px;padding:16px 10px 0;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow-x:auto}
@@ -79,10 +79,10 @@
   </section>
 
   <section class="section">
-    <div class="section-head"><h2>Daily ledger</h2><div class="tiny">UTC</div></div>
+    <div class="section-head"><h2>Daily ledger</h2><div class="tiny">Recent payouts: ~01:08–01:09 UTC</div></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Date</th><th class="num">USDC.e</th><th class="num">Transfers</th><th class="num">Recipients</th></tr></thead>
+        <thead><tr><th>Date (UTC)</th><th class="num">USDC.e</th><th class="num">Transfers</th><th class="num">Recipients</th></tr></thead>
         <tbody id="tbody"><tr><td colspan="4">Loading…</td></tr></tbody>
       </table>
     </div>
@@ -90,14 +90,13 @@
 
   <div class="foot">
     <div>Distributor: <span class="mono">0x1f6edb…6e3e4f</span></div>
-    <div>Source: XO Market Blockscout · USDC.e Transfer events · refreshes every 5 minutes</div>
+    <div>Source: XO Market Blockscout · USDC.e Transfer events · auto-checks daily at 01:20 & 02:00 UTC</div>
   </div>
 </main>
 <script>
   const $ = (id) => document.getElementById(id);
   const money = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:6});
   const intFmt = new Intl.NumberFormat('en-US');
-  let timer;
 
   function shortDate(s){
     const d = new Date(s + 'T00:00:00Z');
@@ -142,8 +141,6 @@
     }
   }
 
-  $('refresh').addEventListener('click',()=>load(true));
-  load(false);
   let autoTimer;
 
 function scheduleNextAutoCheck() {
@@ -179,10 +176,9 @@ function scheduleNextAutoCheck() {
   }, next.getTime() - now.getTime());
 }
 
-$('refresh').addEventListener('click', () => load(true));
-
-load(false);
-scheduleNextAutoCheck();
+  $('refresh').addEventListener('click', () => load(true));
+  load(false);
+  scheduleNextAutoCheck();
 </script>
 </body>
 </html>
