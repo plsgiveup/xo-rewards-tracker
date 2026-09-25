@@ -144,7 +144,45 @@
 
   $('refresh').addEventListener('click',()=>load(true));
   load(false);
-  timer = setInterval(()=>load(false), 300000);
+  let autoTimer;
+
+function scheduleNextAutoCheck() {
+  if (autoTimer) clearTimeout(autoTimer);
+
+  const now = new Date();
+
+  const targets = [
+    { h: 1, m: 20 },
+    { h: 2, m: 0 },
+  ];
+
+  let next = null;
+
+  for (const t of targets) {
+    const candidate = new Date(now);
+    candidate.setUTCHours(t.h, t.m, 0, 0);
+
+    if (candidate > now && (!next || candidate < next)) {
+      next = candidate;
+    }
+  }
+
+  if (!next) {
+    next = new Date(now);
+    next.setUTCDate(next.getUTCDate() + 1);
+    next.setUTCHours(1, 20, 0, 0);
+  }
+
+  autoTimer = setTimeout(async () => {
+    await load(true);
+    scheduleNextAutoCheck();
+  }, next.getTime() - now.getTime());
+}
+
+$('refresh').addEventListener('click', () => load(true));
+
+load(false);
+scheduleNextAutoCheck();
 </script>
 </body>
 </html>
