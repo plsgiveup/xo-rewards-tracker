@@ -4,8 +4,8 @@ const USDC = '0x80c12230ce677e6f304027a14780edd2a829ab0c';
 const DISTRIBUTOR = '0x1f6edbc28d1fd8156c4096b27cd296a0bd6e3e4f';
 const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 const DISTRIBUTOR_TOPIC = '0x' + DISTRIBUTOR.slice(2).padStart(64, '0');
-const START_BLOCK = 11200000;
-const CAMPAIGN_START_TS = Date.parse('2026-09-21T00:00:00Z') / 1000;
+const START_BLOCK = 10500000;
+const CAMPAIGN_START_TS = Date.parse('2026-09-19T00:00:00Z') / 1000;
 const BUDGET_MICRO = 1_000_000n * 1_000_000n;
 const MAX_ROWS = 1000;
 
@@ -138,7 +138,7 @@ module.exports = async function handler(req, res) {
       source: 'XO Market Blockscout, USDC.e Transfer logs',
       campaign: {
         announcedBudget: '1000000',
-        trackingSince: '2026-09-21',
+        trackingSince: '2026-09-19',
         distributor: DISTRIBUTOR,
         token: USDC,
       },
